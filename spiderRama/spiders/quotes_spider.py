@@ -18,47 +18,13 @@ def get_scrapeops_url(url):
 
 class QuotesSpider(scrapy.Spider):
     
-    #________________________________________________________________
-    #___________________________Prueba #1____________________________
-    #________________________________________________________________
-        # name = "quotes"
-        # def start_requests(self):
-        #     urls = [
-        #         # 'https://www.ramajudicial.gov.co/web/juzgado-015-laboral-de-barranquilla/64',
-        #         # 'http://www.ramajudicial.gov.co/sitemap.xml',
-        #         # 'https://www.lupajuridica.com.co/operacion/menu.php',
-                
-        #         'http://quotes.toscrape.com/page/2/',
-        #     ]
-        #     for url in urls:
-        #         yield scrapy.Request(url=url, callback=self.parse)
-
-        # def parse(self, response):
-        #     # print(response)
-        #     # exit();
-        #     page = response.url.split("/")[-2]
-        #     filename = f'quotes-{page}.html'
-        #     with open(filename, 'wb') as f:
-        #         print(  "Contenido Response -->", 
-        #                 response.css('title::text'), 
-        #                 # response.css('title::text').re(r'data'), 
-        #         )
-        #         # f.write(response.body)
-        #         f.write(response.css('title::text'))
-        #         self.log(f'Saved file {filename}')
-      
-    
-    #____________________________________________________________________________________
-    #___________________________________Prueba #2________________________________________
-    #____________________________________________________________________________________
     name = "quotes"
     
     def start_requests(self):
         urls = [
-            # 'http://quotes.toscrape.com/page/2/',
-            # 'https://www.ramajudicial.gov.co/web/juzgado-015-laboral-de-barranquilla/64',
+            'https://www.ramajudicial.gov.co/web/juzgado-015-laboral-de-barranquilla/64',
             # 'https://www.ramajudicial.gov.co/web/secretaria-tribunal-administrativo-del-atlantico/287',
-            'https://www.ramajudicial.gov.co/web/juzgado-015-civil-del-circuito-de-barranquilla/105',
+            # 'https://www.ramajudicial.gov.co/web/juzgado-015-civil-del-circuito-de-barranquilla/105',
         ]
         for url in urls:
             yield scrapy.Request(url=get_scrapeops_url(url), callback=self.parse)
@@ -67,72 +33,35 @@ class QuotesSpider(scrapy.Spider):
         
         #Buscar enlaces del mes actual
         buscarEnlacesMesActual = True
-        
         #Dominio:
         dominioRama = 'https://www.ramajudicial.gov.co'
-        
         #Nombre del archivo:
         filename = f'scraping_enlaces_extraidos_{buscarEnlacesMesActual}.txt'
         
         with open(filename, 'w') as f:
-            #Imprime todo el html de la URL:
-            # print(response.body)
-            
-            #Imprime todos los enlaces que existan en el html de la URL:
-            # print(response.css('a').xpath('@href').getall())
-            
-            #Imprime todos los enlaces de documentos que existan en el html de la URL:
-            # print(response.xpath('//a[contains(@href, "documents/")]/@href').getall())
-            
             enlacesList = response.xpath('//a[contains(@href, "documents/")]/@href').getall()
-            
-            
-            
-            
-            # print("CONTENEDOR TABS MESEs ------->" , response.xpath('//div[contains(@class, "aui-tabview-content-item")]').getall() )
-            # print("CONTENEDOR TABS MESEs ------->" , response.xpath('//div[contains(@class, "aui-tabview-content-item")]').getall())
-            # exit()
-            
-            
-            
-            
+                        
             if buscarEnlacesMesActual:    
                 enlacesList = ""   
                 mes = int(format(datetime.datetime.now().strftime('%m')))
-                #Se recorre las 
-                
-                # print(response.xpath('//div[contains(@class, "aui-tabview-content-item")]').getall())
                 n=0
                 for scope in response.xpath('//div[contains(@class, "aui-tabview-content-item")]'): 
-                # for scope in response.css('div > table').getall(): 
-                    # print(scope)
                     n=n+1
                     if (n==mes):
-                        # print(scope.css('a').xpath('@href').getall())
-                        # print("encontrado:", scope.css('a').xpath('@href').getall()) 
                         enlacesList = scope.css('a').xpath('@href').getall()
-                    
-                        # print("DEL MES ------------>" , scope.css('a').xpath('@href').getall())
-                        # print("DEL MES ------------>" , scope.css('a').xpath('@href').getall())
-            
-            # exit()
-            #Imprime cantidad enlaces:
-            # print("Cantidad enlaces encontrado ---->",len(enlacesList))
             
             if len(enlacesList)>0:
                 #Se descarta enlaces exactamente iguales:
                 enlacesListSinDuplicados = set(enlacesList)
                 
                 for enlacesRama in enlacesListSinDuplicados:                    
-                    # print( "EL ENLACE CONTIENE EL DOMINIO -->", re.search("^"+dominioRama+"*", enlacesRama) )
                     if( re.search("^"+dominioRama+"*", enlacesRama) ):
                         print("Tiene el dominio")
                     else:
                         enlacesRama = dominioRama + str(enlacesRama)
                         
                     f.write(str(enlacesRama)+'\n')
-            
-            # f.write(response.body)
+                    
             self.log(f'Saved file {filename}')
             
             
