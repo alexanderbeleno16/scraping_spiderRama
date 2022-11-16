@@ -32,35 +32,51 @@ class QuotesSpider(scrapy.Spider):
     def parse(self, response):
         
         #Buscar enlaces del mes actual
-        buscarEnlacesMesActual = True
+        buscarEnlacesMesActual = False
         #Dominio:
         dominioRama = 'https://www.ramajudicial.gov.co'
         #Nombre del archivo:
-        filename = f'scraping_enlaces_extraidos_{buscarEnlacesMesActual}.txt'
+        filename = f'scraping_tablas_enlaces_extraidos_{buscarEnlacesMesActual}.html'
         
         with open(filename, 'w') as f:
-            enlacesList = response.xpath('//a[contains(@href, "documents/")]/@href').getall()
+            tablasEnlacesList = [contenedorTable.css('table').getall() for contenedorTable in response.xpath('//div[contains(@class, "aui-tabview-content-item")]')]
+            # for table in tableList:
+            #     tablasEnlacesList =
+            # print(tablas) #0.6 0.3 0.3 0.3 = 1.5 
+            # f.write(str(tablas)+'\n')
+            # exit()
                         
             if buscarEnlacesMesActual:    
-                enlacesList = ""   
+                tablasEnlacesList = ""   
                 mes = int(format(datetime.datetime.now().strftime('%m')))
                 n=0
                 for scope in response.xpath('//div[contains(@class, "aui-tabview-content-item")]'): 
                     n=n+1
                     if (n==mes):
-                        enlacesList = scope.css('a').xpath('@href').getall()
+                        tablasEnlacesList = scope.css('table').getall()
             
-            if len(enlacesList)>0:
+            # print( tablasEnlacesList )
+            # exit()
+            if len(tablasEnlacesList)>0:
                 #Se descarta enlaces exactamente iguales:
-                enlacesListSinDuplicados = set(enlacesList)
+                # tablasEnlacesListSinDuplicados = set(tablasEnlacesList)
                 
-                for enlacesRama in enlacesListSinDuplicados:                    
-                    if( re.search("^"+dominioRama+"*", enlacesRama) ):
-                        print("Tiene el dominio")
+                for tablaEnlace in tablasEnlacesList: 
+                    if type(tablaEnlace)==list:
+                        for tb in tablaEnlace:
+                            # if( re.search("^"+dominioRama+"*", tb) ):
+                            #     print("Tiene el dominio")
+                            # else:
+                            #     tb = dominioRama + str(tb.css('a').getall())
+                                
+                            # f.write(str(tb)+'\n')
+                            # print(tb.replace("\x00", ""))
+                            f.write(str(tb).replace(["\x00"], "")+'\n')
+                            
                     else:
-                        enlacesRama = dominioRama + str(enlacesRama)
-                        
-                    f.write(str(enlacesRama)+'\n')
+                        print("No es list ------------>",  type(tablaEnlace))
+                             
+                    
                     
             self.log(f'Saved file {filename}')
             
